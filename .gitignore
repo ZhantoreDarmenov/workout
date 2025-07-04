@@ -1,0 +1,4 @@
+database.yml
+internal/config/config.go
+config/config_new.yaml
+.env

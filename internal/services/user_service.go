@@ -1,0 +1,148 @@
+package services
+
+import (
+	_ "bytes"
+	"context"
+	_ "encoding/json"
+	"errors"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
+	_ "github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	_ "io"
+	_ "io/ioutil"
+	"log"
+	_ "math/rand"
+	_ "net/http"
+	_ "net/url"
+	_ "os"
+	"strconv"
+	_ "strings"
+	"time"
+	"workout/internal/models"
+	"workout/internal/repositories"
+	"workout/utils"
+)
+
+type tokenClaims struct {
+	jwt.StandardClaims
+	UserID int    `json:"user_id"`
+	Role   string `json:"role"`
+}
+type UserService struct {
+	UserRepo     *repositories.UserRepository
+	TokenManager *utils.Manager
+}
+
+func (s *UserService) SignIn(ctx context.Context, name, phone, email, password string) (models.Tokens, error) {
+	user, err := s.UserRepo.GetUserByPhone(ctx, phone)
+	if err != nil {
+		log.Printf("User not found: %s", phone)
+		return models.Tokens{}, errors.New("user not found")
+	}
+
+	// Compare the provided password with the hashed password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		log.Printf("Invalid password for user: %s", phone)
+		return models.Tokens{}, errors.New("invalid password")
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		UserID: user.ID,
+		Role:   user.Role,
+	})
+
+	accessToken, err := token.SignedString([]byte(signingKey))
+	if err != nil {
+		log.Printf("Error signing token: %v", err)
+		return models.Tokens{}, err
+	}
+	fmt.Println("login token:", accessToken)
+	tokens, err := s.CreateSession(ctx, user, accessToken)
+	if err != nil {
+		log.Printf("Error creating session: %v", err)
+		return models.Tokens{}, err
+	}
+
+	return tokens, nil
+}
+
+const (
+	salt       = "sadasdnsadna"
+	tokenTTL   = 120 * time.Minute
+	signingKey = "asdadsadadaadsasd"
+)
+
+func (s *UserService) CreateSession(ctx context.Context, user models.User, accessToken string) (models.Tokens, error) {
+	var (
+		res models.Tokens
+		err error
+	)
+
+	userIDStr := strconv.Itoa(user.ID)
+
+	res.AccessToken = accessToken
+
+	// Generate RefreshToken using UUID as a fallback
+	res.RefreshToken = uuid.New().String() // Fallback if TokenManager is unavailable
+	if s.TokenManager != nil {
+		res.RefreshToken, err = s.TokenManager.NewRefreshToken()
+		if err != nil {
+			return res, err
+		}
+	}
+
+	// Создание и сохранение сессии с RefreshToken
+	session := models.Session{
+		RefreshToken: res.RefreshToken,
+		ExpiresAt:    time.Now().Add(24 * 30 * 2 * time.Hour),
+	}
+
+	err = s.UserRepo.SetSession(ctx, userIDStr, session)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
+
+func (s *UserService) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	return s.UserRepo.CreateUser(ctx, user)
+}
+
+func (s *UserService) SignUp(ctx context.Context, user models.User, inputCode string) (models.SignUpResponse, error) {
+	// 1. Получаем ожидаемый код из базы
+	codeFromDB, err := s.UserRepo.GetVerificationCodeByPhone(ctx, user.Phone)
+	if err != nil {
+		return models.SignUpResponse{}, err
+	}
+
+	// 2. Сравниваем коды
+	if inputCode != codeFromDB {
+		return models.SignUpResponse{}, models.ErrInvalidVerificationCode
+	}
+
+	// 3. Хешируем пароль
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.SignUpResponse{}, err
+	}
+	user.Password = string(hashedPassword)
+	user.Role = "client"
+
+	// 4. Сохраняем пользователя
+	newUser, err := s.UserRepo.CreateUser(ctx, user)
+	if err != nil {
+		return models.SignUpResponse{}, err
+	}
+
+	// 5. Можно очистить использованный код, если хочешь
+	_ = s.UserRepo.ClearVerificationCode(ctx, user.Phone)
+
+	return models.SignUpResponse{User: newUser}, nil
+}
