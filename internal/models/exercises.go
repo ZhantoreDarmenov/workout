@@ -4,12 +4,12 @@ import (
 	"time"
 )
 
-type WorkOutProgram struct {
+type Exercises struct {
 	ID          int        `json:"id"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
-	Duration    string     `json:"duration"`
-	Clients     string     `json:"clients"`
+	Sets        string     `json:"sets"`
+	Repetitions string     `json:"repetitions"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
