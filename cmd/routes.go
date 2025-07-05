@@ -30,6 +30,10 @@ func (app *application) routes() http.Handler {
 	mux.Post("/program", adminAuthMiddleware.ThenFunc(app.programHandler.CreateProgram))
 	mux.Get("/programs", standardMiddleware.ThenFunc(app.programHandler.ProgramsByTrainer))
 
+	// Days
+	mux.Get("/program/day", standardMiddleware.ThenFunc(app.dayHandler.DayDetails))
+	mux.Post("/program/day/complete", standardMiddleware.ThenFunc(app.dayHandler.CompleteDay))
+
 	// mux.Get("/swagger/", httpSwagger.WrapHandler)
 
 	return standardMiddleware.Then(mux)

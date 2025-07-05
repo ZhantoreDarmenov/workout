@@ -27,21 +27,25 @@ type application struct {
 	userRepo       *repositories.UserRepository
 	programHandler *handlers.ProgramHandler
 	programRepo    *repositories.ProgramRepository
+	dayHandler     *handlers.DayHandler
+	dayRepo        *repositories.DayRepository
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
-	// Repositories\
 	// Repositories
 	userRepo := repositories.UserRepository{DB: db}
 	programRepo := repositories.ProgramRepository{DB: db}
+	dayRepo := repositories.DayRepository{DB: db}
 
 	// Services
 	userService := &services.UserService{UserRepo: &userRepo}
 	programService := &services.ProgramService{Repo: &programRepo}
+	dayService := &services.DayService{Repo: &dayRepo}
 
 	// Handlers
 	userHandler := &handlers.UserHandler{Service: userService}
 	programHandler := &handlers.ProgramHandler{Service: programService}
+	dayHandler := &handlers.DayHandler{Service: dayService}
 
 	return &application{
 		errorLog:       errorLog,
@@ -50,6 +54,8 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 		programHandler: programHandler,
 		userRepo:       &userRepo,
 		programRepo:    &programRepo,
+		dayRepo:        &dayRepo,
+		dayHandler:     dayHandler,
 	}
 }
 
