@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"workout/internal/models"
 	"workout/internal/services"
 )
 
@@ -43,4 +44,31 @@ func (h *DayHandler) CompleteDay(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(progress)
+}
+func (h *DayHandler) CreateDay(w http.ResponseWriter, r *http.Request) {
+	var day models.Days
+	if err := json.NewDecoder(r.Body).Decode(&day); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	created, err := h.Service.CreateDay(r.Context(), day)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(created)
+}
+
+// DaysByProgram returns all days with details for a program.
+func (h *DayHandler) DaysByProgram(w http.ResponseWriter, r *http.Request) {
+	programID, _ := strconv.Atoi(r.URL.Query().Get("program_id"))
+	days, err := h.Service.DaysByProgram(r.Context(), programID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(days)
 }

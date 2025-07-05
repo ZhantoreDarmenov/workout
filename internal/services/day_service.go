@@ -18,3 +18,11 @@ func (s *DayService) GetDay(ctx context.Context, programID, dayNumber int) (mode
 func (s *DayService) CompleteDay(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
 	return s.Repo.MarkDayCompleted(ctx, clientID, dayID)
 }
+
+func (s *DayService) CreateDay(ctx context.Context, day models.Days) (models.Days, error) {
+	return s.Repo.CreateDay(ctx, day)
+}
+
+func (s *DayService) DaysByProgram(ctx context.Context, programID int) ([]models.DayDetails, error) {
+	return s.Repo.DaysByProgram(ctx, programID)
+}

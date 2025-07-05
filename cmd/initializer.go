@@ -21,14 +21,18 @@ import (
 )
 
 type application struct {
-	errorLog       *log.Logger
-	infoLog        *log.Logger
-	userHandler    *handlers.UserHandler
-	userRepo       *repositories.UserRepository
-	programHandler *handlers.ProgramHandler
-	programRepo    *repositories.ProgramRepository
-	dayHandler     *handlers.DayHandler
-	dayRepo        *repositories.DayRepository
+	errorLog        *log.Logger
+	infoLog         *log.Logger
+	userHandler     *handlers.UserHandler
+	userRepo        *repositories.UserRepository
+	programHandler  *handlers.ProgramHandler
+	programRepo     *repositories.ProgramRepository
+	dayHandler      *handlers.DayHandler
+	dayRepo         *repositories.DayRepository
+	exerciseHandler *handlers.ExerciseHandler
+	exerciseRepo    *repositories.ExerciseRepository
+	foodHandler     *handlers.FoodHandler
+	foodRepo        *repositories.FoodRepository
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -36,26 +40,36 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	userRepo := repositories.UserRepository{DB: db}
 	programRepo := repositories.ProgramRepository{DB: db}
 	dayRepo := repositories.DayRepository{DB: db}
+	exerciseRepo := repositories.ExerciseRepository{DB: db}
+	foodRepo := repositories.FoodRepository{DB: db}
 
 	// Services
 	userService := &services.UserService{UserRepo: &userRepo}
 	programService := &services.ProgramService{Repo: &programRepo}
 	dayService := &services.DayService{Repo: &dayRepo}
+	exerciseService := &services.ExerciseService{Repo: &exerciseRepo}
+	foodService := &services.FoodService{Repo: &foodRepo}
 
 	// Handlers
 	userHandler := &handlers.UserHandler{Service: userService}
 	programHandler := &handlers.ProgramHandler{Service: programService}
 	dayHandler := &handlers.DayHandler{Service: dayService}
+	exerciseHandler := &handlers.ExerciseHandler{Service: exerciseService}
+	foodHandler := &handlers.FoodHandler{Service: foodService}
 
 	return &application{
-		errorLog:       errorLog,
-		infoLog:        infoLog,
-		userHandler:    userHandler,
-		programHandler: programHandler,
-		userRepo:       &userRepo,
-		programRepo:    &programRepo,
-		dayRepo:        &dayRepo,
-		dayHandler:     dayHandler,
+		errorLog:        errorLog,
+		infoLog:         infoLog,
+		userHandler:     userHandler,
+		programHandler:  programHandler,
+		userRepo:        &userRepo,
+		programRepo:     &programRepo,
+		dayRepo:         &dayRepo,
+		dayHandler:      dayHandler,
+		exerciseRepo:    &exerciseRepo,
+		exerciseHandler: exerciseHandler,
+		foodRepo:        &foodRepo,
+		foodHandler:     foodHandler,
 	}
 }
 

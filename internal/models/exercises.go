@@ -9,6 +9,7 @@ type Exercises struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Sets        string     `json:"sets"`
+	MediaURL    string     `json:"media_url"`
 	Repetitions string     `json:"repetitions"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
