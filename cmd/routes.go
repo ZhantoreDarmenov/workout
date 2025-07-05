@@ -18,6 +18,8 @@ func (app *application) routes() http.Handler {
 	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders, makeResponseJSON)
 	//authMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("user"))
 	adminAuthMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("admin"))
+	trainerAuthMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("trainer"))
+	clientAuthMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("client"))
 
 	mux := pat.New()
 
@@ -25,9 +27,10 @@ func (app *application) routes() http.Handler {
 	mux.Post("/user", adminAuthMiddleware.ThenFunc(app.userHandler.CreateUser))
 	mux.Post("/user/sign_up", standardMiddleware.ThenFunc(app.userHandler.SignUp))
 	mux.Post("/user/sign_in", standardMiddleware.ThenFunc(app.userHandler.SignIn))
+	mux.Post("/user/upgrade", clientAuthMiddleware.ThenFunc(app.userHandler.UpgradeToTrainer))
 
 	// Programs
-	mux.Post("/program", adminAuthMiddleware.ThenFunc(app.programHandler.CreateProgram))
+	mux.Post("/program", trainerAuthMiddleware.ThenFunc(app.programHandler.CreateProgram))
 	mux.Get("/programs", standardMiddleware.ThenFunc(app.programHandler.ProgramsByTrainer))
 
 	// Days

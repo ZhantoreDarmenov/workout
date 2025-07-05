@@ -78,7 +78,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.Service.SignIn(r.Context(), req.Name, req.Phone, req.Email, req.Password)
+	resp, err := h.Service.SignIn(r.Context(), req.Email, req.Password)
 	if err != nil {
 		log.Printf("error: %v", err)
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
@@ -88,4 +88,20 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
+}
+
+// UpgradeToTrainer upgrades the authenticated user to trainer role.
+func (h *UserHandler) UpgradeToTrainer(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		http.Error(w, "user id missing", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.Service.UpgradeToTrainer(r.Context(), userID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -116,6 +116,11 @@ func (app *application) JWTMiddleware(next http.Handler, requiredRole string) ht
 			return
 		}
 
+		if requiredRole == "trainer" && claims.Role != "trainer" && claims.Role != "admin" {
+			http.Error(w, "Forbidden: only trainers or admins allowed", http.StatusForbidden)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), "user_id", int(claims.UserID))
 		ctx = context.WithValue(ctx, "role", claims.Role)
 

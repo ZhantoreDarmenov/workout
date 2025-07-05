@@ -35,16 +35,16 @@ type UserService struct {
 	TokenManager *utils.Manager
 }
 
-func (s *UserService) SignIn(ctx context.Context, name, phone, email, password string) (models.Tokens, error) {
-	user, err := s.UserRepo.GetUserByPhone(ctx, phone)
+func (s *UserService) SignIn(ctx context.Context, email, password string) (models.Tokens, error) {
+	user, err := s.UserRepo.GetUserByEmail(ctx, email)
 	if err != nil {
-		log.Printf("User not found: %s", phone)
+		log.Printf("User not found: %s", email)
 		return models.Tokens{}, errors.New("user not found")
 	}
 
 	// Compare the provided password with the hashed password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		log.Printf("Invalid password for user: %s", phone)
+		log.Printf("Invalid password for user: %s", email)
 		return models.Tokens{}, errors.New("invalid password")
 	}
 
@@ -117,7 +117,7 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (models.
 
 func (s *UserService) SignUp(ctx context.Context, user models.User, inputCode string) (models.SignUpResponse, error) {
 	// 1. Получаем ожидаемый код из базы
-	codeFromDB, err := s.UserRepo.GetVerificationCodeByPhone(ctx, user.Phone)
+	codeFromDB, err := s.UserRepo.GetVerificationCodeByEmail(ctx, user.Email)
 	if err != nil {
 		return models.SignUpResponse{}, err
 	}
@@ -142,7 +142,11 @@ func (s *UserService) SignUp(ctx context.Context, user models.User, inputCode st
 	}
 
 	// 5. Можно очистить использованный код, если хочешь
-	_ = s.UserRepo.ClearVerificationCode(ctx, user.Phone)
+	_ = s.UserRepo.ClearVerificationCode(ctx, user.Email)
 
 	return models.SignUpResponse{User: newUser}, nil
+}
+
+func (s *UserService) UpgradeToTrainer(ctx context.Context, userID int) error {
+	return s.UserRepo.UpdateUserRole(ctx, userID, "trainer")
 }

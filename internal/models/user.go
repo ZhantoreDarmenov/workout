@@ -34,8 +34,6 @@ type Session struct {
 }
 
 type SignInRequest struct {
-	Name     string `json:"name"`
-	Phone    string `json:"phone"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -56,13 +54,12 @@ type SignUpResponse1 struct {
 }
 
 type DuplicateCheckRequest struct {
-	Phone string `json:"phone"`
 	Email string `json:"email"`
 }
 
 type VerificationCodeEntry struct {
 	ID        int       `json:"id"`
-	Phone     string    `json:"phone"`
+	Email     string    `json:"email"`
 	Code      string    `json:"code"`
 	CreatedAt time.Time `json:"created_at"`
 }

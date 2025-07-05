@@ -68,14 +68,14 @@ func (r *UserRepository) GetSession(ctx context.Context, id string) (models.Sess
 	return session, nil
 }
 
-func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (models.User, error) {
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
 	var user models.User
 	query := `
         SELECT id, name, phone, email, password, role, created_at, updated_at
         FROM users
-        WHERE phone = ?
+        WHERE email = ?
     `
-	err := r.DB.QueryRowContext(ctx, query, phone).Scan(
+	err := r.DB.QueryRowContext(ctx, query, email).Scan(
 		&user.ID, &user.Name, &user.Phone, &user.Email, &user.Password,
 		&user.Role,
 		&user.CreatedAt, &user.UpdatedAt,
@@ -112,9 +112,9 @@ func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (mode
 	return user, nil
 }
 
-func (r *UserRepository) GetVerificationCodeByPhone(ctx context.Context, phone string) (string, error) {
+func (r *UserRepository) GetVerificationCodeByEmail(ctx context.Context, email string) (string, error) {
 	var code string
-	err := r.DB.QueryRowContext(ctx, `SELECT code FROM verification_codes WHERE phone = ?`, phone).Scan(&code)
+	err := r.DB.QueryRowContext(ctx, `SELECT code FROM verification_codes WHERE email = ?`, email).Scan(&code)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", models.ErrInvalidVerificationCode
@@ -124,7 +124,14 @@ func (r *UserRepository) GetVerificationCodeByPhone(ctx context.Context, phone s
 	return code, nil
 }
 
-func (r *UserRepository) ClearVerificationCode(ctx context.Context, phone string) error {
-	_, err := r.DB.ExecContext(ctx, `DELETE FROM verification_codes WHERE phone = ?`, phone)
+// ClearVerificationCode removes a verification code record for an email.
+func (r *UserRepository) ClearVerificationCode(ctx context.Context, email string) error {
+	_, err := r.DB.ExecContext(ctx, `DELETE FROM verification_codes WHERE email = ?`, email)
+	return err
+}
+
+// UpdateUserRole updates the role of a user.
+func (r *UserRepository) UpdateUserRole(ctx context.Context, userID int, role string) error {
+	_, err := r.DB.ExecContext(ctx, `UPDATE users SET role = ?, updated_at = ? WHERE id = ?`, role, time.Now(), userID)
 	return err
 }
