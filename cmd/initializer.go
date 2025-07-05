@@ -9,6 +9,7 @@ import (
 	_ "google.golang.org/api/option"
 	"log"
 	"net/http"
+
 	"workout/internal/handlers"
 	_ "workout/internal/handlers"
 	_ "workout/internal/models"
@@ -20,26 +21,35 @@ import (
 )
 
 type application struct {
-	errorLog    *log.Logger
-	infoLog     *log.Logger
-	userHandler *handlers.UserHandler
-	userRepo    *repositories.UserRepository
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	userHandler    *handlers.UserHandler
+	userRepo       *repositories.UserRepository
+	programHandler *handlers.ProgramHandler
+	programRepo    *repositories.ProgramRepository
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	// Repositories\
+	// Repositories
 	userRepo := repositories.UserRepository{DB: db}
+	programRepo := repositories.ProgramRepository{DB: db}
 
 	// Services
 	userService := &services.UserService{UserRepo: &userRepo}
+	programService := &services.ProgramService{Repo: &programRepo}
 
 	// Handlers
 	userHandler := &handlers.UserHandler{Service: userService}
+	programHandler := &handlers.ProgramHandler{Service: programService}
 
 	return &application{
-		errorLog:    errorLog,
-		infoLog:     infoLog,
-		userHandler: userHandler,
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		userHandler:    userHandler,
+		programHandler: programHandler,
+		userRepo:       &userRepo,
+		programRepo:    &programRepo,
 	}
 }
 

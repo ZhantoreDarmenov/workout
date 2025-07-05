@@ -6,7 +6,9 @@ import (
 
 type WorkOutProgram struct {
 	ID          int        `json:"id"`
+	TrainerID   int        `json:"trainer_id"`
 	Name        string     `json:"name"`
+	Days        int        `json:"days"`
 	Description string     `json:"description"`
 	Duration    string     `json:"duration"`
 	Clients     string     `json:"clients"`

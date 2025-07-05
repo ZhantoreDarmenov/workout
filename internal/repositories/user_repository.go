@@ -71,7 +71,7 @@ func (r *UserRepository) GetSession(ctx context.Context, id string) (models.Sess
 func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (models.User, error) {
 	var user models.User
 	query := `
-        SELECT id, name, surname, middlename, phone, email, password, city_id, years_of_exp, doc_of_proof, review_rating, role, latitude, longitude, created_at, updated_at
+        SELECT id, name, phone, email, password, role, created_at, updated_at
         FROM users
         WHERE phone = ?
     `
@@ -91,8 +91,8 @@ func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (mode
 
 func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
 	query := `
-        INSERT INTO users (name, surname, middlename, phone, email, password, city_id, review_rating, role, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (name, phone, email, password, role, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     `
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = &user.CreatedAt
