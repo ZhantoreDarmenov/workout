@@ -17,6 +17,9 @@ func (r *DayRepository) GetDayDetails(ctx context.Context, programID, dayNumber 
 	var d models.Days
 	err := r.DB.QueryRowContext(ctx, `SELECT id, work_out_program_id, day_number, exercises_id, food_id, created_at, updated_at FROM days WHERE work_out_program_id=? AND day_number=?`, programID, dayNumber).Scan(&d.ID, &d.WorkOutProgramID, &d.DayNumber, &d.ExercisesID, &d.FoodID, &d.CreatedAt, &d.UpdatedAt)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.DayDetails{}, models.ErrDayNotFound
+		}
 		return models.DayDetails{}, err
 	}
 
@@ -50,6 +53,29 @@ func (r *DayRepository) MarkDayCompleted(ctx context.Context, clientID, dayID in
 }
 
 func (r *DayRepository) CreateDay(ctx context.Context, day models.Days) (models.Days, error) {
+	// ensure referenced records exist to avoid foreign key errors
+	var exists bool
+	if err := r.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM workout_programs WHERE id = ?)", day.WorkOutProgramID).Scan(&exists); err != nil {
+		return models.Days{}, err
+	}
+	if !exists {
+		return models.Days{}, models.ErrWorkoutProgramNotFound
+	}
+
+	if err := r.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM exercises WHERE id = ?)", day.ExercisesID).Scan(&exists); err != nil {
+		return models.Days{}, err
+	}
+	if !exists {
+		return models.Days{}, models.ErrExerciseNotFound
+	}
+
+	if err := r.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM food WHERE id = ?)", day.FoodID).Scan(&exists); err != nil {
+		return models.Days{}, err
+	}
+	if !exists {
+		return models.Days{}, models.ErrFoodNotFound
+	}
+
 	query := `INSERT INTO days (work_out_program_id, day_number, exercises_id, food_id, created_at, updated_at)
                   VALUES (?, ?, ?, ?, ?, ?)`
 	day.CreatedAt = time.Now()
@@ -80,7 +106,7 @@ func (r *DayRepository) DaysByProgram(ctx context.Context, programID int) ([]mod
 	}
 	defer rows.Close()
 
-	var result []models.DayDetails
+	result := []models.DayDetails{}
 	for rows.Next() {
 		var d models.Days
 		var ex models.Exercises

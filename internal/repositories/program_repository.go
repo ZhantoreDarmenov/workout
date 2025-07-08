@@ -43,7 +43,7 @@ WHERE trainer_id = ?
 	}
 	defer rows.Close()
 
-	var programs []models.WorkOutProgram
+	programs := []models.WorkOutProgram{}
 	for rows.Next() {
 		var p models.WorkOutProgram
 		if err := rows.Scan(&p.ID, &p.TrainerID, &p.Name, &p.Days, &p.Description, &p.CreatedAt, &p.UpdatedAt); err != nil {
