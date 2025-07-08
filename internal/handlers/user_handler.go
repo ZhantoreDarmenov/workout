@@ -1,17 +1,11 @@
 package handlers
 
 import (
-	_ "context"
 	"encoding/json"
 	"errors"
-	_ "fmt"
-	_ "io"
 	"log"
 	"net/http"
-	_ "os"
-	_ "path/filepath"
-	_ "strconv"
-	_ "time"
+	"strconv"
 
 	"workout/internal/models"
 	"workout/internal/services"
@@ -104,4 +98,79 @@ func (h *UserHandler) UpgradeToTrainer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetAllClients returns all users with client role.
+func (h *UserHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
+	clients, err := h.Service.GetAllClients(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(clients)
+}
+
+// GetClientsByProgramID lists clients participating in a program.
+func (h *UserHandler) GetClientsByProgramID(w http.ResponseWriter, r *http.Request) {
+	programID, _ := strconv.Atoi(r.URL.Query().Get(":program_id"))
+	if programID == 0 {
+		programID, _ = strconv.Atoi(r.URL.Query().Get("program_id"))
+	}
+	if programID == 0 {
+		http.Error(w, "program_id required", http.StatusBadRequest)
+		return
+	}
+	clients, err := h.Service.GetClientsByProgramID(r.Context(), programID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(clients)
+}
+
+// DeleteClientFromProgram removes a client's progress from a program.
+func (h *UserHandler) DeleteClientFromProgram(w http.ResponseWriter, r *http.Request) {
+	programID, _ := strconv.Atoi(r.URL.Query().Get(":program_id"))
+	if programID == 0 {
+		programID, _ = strconv.Atoi(r.URL.Query().Get("program_id"))
+	}
+	clientID, _ := strconv.Atoi(r.URL.Query().Get(":client_id"))
+	if clientID == 0 {
+		clientID, _ = strconv.Atoi(r.URL.Query().Get("client_id"))
+	}
+	if programID == 0 || clientID == 0 {
+		http.Error(w, "program_id and client_id required", http.StatusBadRequest)
+		return
+	}
+	if err := h.Service.DeleteClientFromProgram(r.Context(), programID, clientID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetProgramsByClientID lists workout programs a client is enrolled in.
+func (h *UserHandler) GetProgramsByClientID(w http.ResponseWriter, r *http.Request) {
+	clientID, _ := strconv.Atoi(r.URL.Query().Get(":client_id"))
+	if clientID == 0 {
+		clientID, _ = strconv.Atoi(r.URL.Query().Get("client_id"))
+	}
+	if clientID == 0 {
+		if id, ok := r.Context().Value("user_id").(int); ok {
+			clientID = id
+		}
+	}
+	if clientID == 0 {
+		http.Error(w, "client_id required", http.StatusBadRequest)
+		return
+	}
+	programs, err := h.Service.GetProgramsByClientID(r.Context(), clientID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(programs)
 }
