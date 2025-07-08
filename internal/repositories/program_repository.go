@@ -53,3 +53,66 @@ WHERE trainer_id = ?
 	}
 	return programs, rows.Err()
 }
+
+// GetProgramByID fetches a workout program by its ID.
+func (r *ProgramRepository) GetProgramByID(ctx context.Context, id int) (models.WorkOutProgram, error) {
+	var p models.WorkOutProgram
+	query := `SELECT id, trainer_id, name, days, description, created_at, updated_at FROM workout_programs WHERE id = ?`
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(&p.ID, &p.TrainerID, &p.Name, &p.Days, &p.Description, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.WorkOutProgram{}, models.ErrWorkoutProgramNotFound
+		}
+		return models.WorkOutProgram{}, err
+	}
+	return p, nil
+}
+
+// UpdateProgram updates an existing workout program.
+func (r *ProgramRepository) UpdateProgram(ctx context.Context, p models.WorkOutProgram) (models.WorkOutProgram, error) {
+	now := time.Now()
+	p.UpdatedAt = &now
+	query := `UPDATE workout_programs SET name = ?, days = ?, description = ?, updated_at = ? WHERE id = ?`
+	res, err := r.DB.ExecContext(ctx, query, p.Name, p.Days, p.Description, p.UpdatedAt, p.ID)
+	if err != nil {
+		return models.WorkOutProgram{}, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return models.WorkOutProgram{}, err
+	}
+	if rows == 0 {
+		return models.WorkOutProgram{}, models.ErrWorkoutProgramNotFound
+	}
+	return p, nil
+}
+
+// DeleteProgram removes a workout program and all of its days.
+func (r *ProgramRepository) DeleteProgram(ctx context.Context, id int) error {
+	tx, err := r.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if _, err = tx.ExecContext(ctx, `DELETE FROM days WHERE work_out_program_id = ?`, id); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	res, err := tx.ExecContext(ctx, `DELETE FROM workout_programs WHERE id = ?`, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if rows == 0 {
+		tx.Rollback()
+		return models.ErrWorkoutProgramNotFound
+	}
+
+	return tx.Commit()
+}
