@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+
 	"workout/internal/models"
 	"workout/internal/services"
 )
@@ -16,13 +17,31 @@ type DayHandler struct {
 
 // DayDetails returns exercises and food for a specific day in a program.
 func (h *DayHandler) DayDetails(w http.ResponseWriter, r *http.Request) {
-	programID, _ := strconv.Atoi(r.URL.Query().Get("program_id"))
-	dayNum, _ := strconv.Atoi(r.URL.Query().Get("day"))
+	programID, _ := strconv.Atoi(r.URL.Query().Get(":program_id"))
+	if programID == 0 {
+		programID, _ = strconv.Atoi(r.URL.Query().Get("program_id"))
+	}
+
+	dayNum, _ := strconv.Atoi(r.URL.Query().Get(":day"))
+	if dayNum == 0 {
+		dayNum, _ = strconv.Atoi(r.URL.Query().Get("day"))
+	}
+
+	if programID == 0 || dayNum == 0 {
+		http.Error(w, "program_id and day are required", http.StatusBadRequest)
+		return
+	}
+
 	details, err := h.Service.GetDay(r.Context(), programID, dayNum)
 	if err != nil {
+		if errors.Is(err, models.ErrDayNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(details)
 }
@@ -68,7 +87,15 @@ func (h *DayHandler) CreateDay(w http.ResponseWriter, r *http.Request) {
 
 // DaysByProgram returns all days with details for a program.
 func (h *DayHandler) DaysByProgram(w http.ResponseWriter, r *http.Request) {
-	programID, _ := strconv.Atoi(r.URL.Query().Get("program_id"))
+	programID, _ := strconv.Atoi(r.URL.Query().Get(":program_id"))
+	if programID == 0 {
+		programID, _ = strconv.Atoi(r.URL.Query().Get("program_id"))
+	}
+	if programID == 0 {
+		http.Error(w, "program_id required", http.StatusBadRequest)
+		return
+	}
+
 	days, err := h.Service.DaysByProgram(r.Context(), programID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
