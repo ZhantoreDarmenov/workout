@@ -45,7 +45,9 @@ func (app *application) routes() http.Handler {
 	mux.Get("/program/:program_id/day/:day", trainerAuthMiddleware.ThenFunc(app.dayHandler.DayDetails))
 	mux.Post("/program/day/complete", standardMiddleware.ThenFunc(app.dayHandler.CompleteDay))
 	mux.Post("/program/day", trainerAuthMiddleware.ThenFunc(app.dayHandler.CreateDay))
+
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
+
 
 	// mux.Get("/swagger/", httpSwagger.WrapHandler)
 
