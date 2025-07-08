@@ -104,3 +104,39 @@ func (h *DayHandler) DaysByProgram(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(days)
 }
+
+// UpdateDay edits an existing workout day by id.
+func (h *DayHandler) UpdateDay(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	if id == 0 {
+		id, _ = strconv.Atoi(r.URL.Query().Get("id"))
+	}
+	if id == 0 {
+		http.Error(w, "id required", http.StatusBadRequest)
+		return
+	}
+
+	var day models.Days
+	if err := json.NewDecoder(r.Body).Decode(&day); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	day.ID = id
+
+	updated, err := h.Service.UpdateDay(r.Context(), day)
+	if err != nil {
+		if errors.Is(err, models.ErrDayNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		if errors.Is(err, models.ErrWorkoutProgramNotFound) || errors.Is(err, models.ErrExerciseNotFound) || errors.Is(err, models.ErrFoodNotFound) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updated)
+}

@@ -122,3 +122,45 @@ func (r *DayRepository) DaysByProgram(ctx context.Context, programID int) ([]mod
 	}
 	return result, rows.Err()
 }
+
+// UpdateDay updates a workout day by its ID.
+func (r *DayRepository) UpdateDay(ctx context.Context, day models.Days) (models.Days, error) {
+	// ensure referenced records exist to avoid foreign key violations
+	var exists bool
+	if err := r.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM workout_programs WHERE id = ?)", day.WorkOutProgramID).Scan(&exists); err != nil {
+		return models.Days{}, err
+	}
+	if !exists {
+		return models.Days{}, models.ErrWorkoutProgramNotFound
+	}
+
+	if err := r.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM exercises WHERE id = ?)", day.ExercisesID).Scan(&exists); err != nil {
+		return models.Days{}, err
+	}
+	if !exists {
+		return models.Days{}, models.ErrExerciseNotFound
+	}
+
+	if err := r.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM food WHERE id = ?)", day.FoodID).Scan(&exists); err != nil {
+		return models.Days{}, err
+	}
+	if !exists {
+		return models.Days{}, models.ErrFoodNotFound
+	}
+
+	now := time.Now()
+	day.UpdatedAt = &now
+	res, err := r.DB.ExecContext(ctx, `UPDATE days SET work_out_program_id = ?, day_number = ?, exercises_id = ?, food_id = ?, updated_at = ? WHERE id = ?`,
+		day.WorkOutProgramID, day.DayNumber, day.ExercisesID, day.FoodID, day.UpdatedAt, day.ID)
+	if err != nil {
+		return models.Days{}, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return models.Days{}, err
+	}
+	if rows == 0 {
+		return models.Days{}, models.ErrDayNotFound
+	}
+	return day, nil
+}
