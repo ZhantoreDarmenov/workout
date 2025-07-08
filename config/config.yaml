@@ -3,4 +3,4 @@ server:
 
 database:
   driver: "mysql"
-  url: "root:@tcp(localhost:3306)/table_name?parseTime=true"
+  url: "root:@tcp(localhost:3306)/workout?parseTime=true"
