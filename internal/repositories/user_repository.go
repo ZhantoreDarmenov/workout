@@ -135,3 +135,50 @@ func (r *UserRepository) UpdateUserRole(ctx context.Context, userID int, role st
 	_, err := r.DB.ExecContext(ctx, `UPDATE users SET role = ?, updated_at = ? WHERE id = ?`, role, time.Now(), userID)
 	return err
 }
+
+func (r *UserRepository) GetAllClients(ctx context.Context) ([]models.User, error) {
+	rows, err := r.DB.QueryContext(ctx, `SELECT id, name, phone, email, password, role, created_at, updated_at FROM users WHERE role = 'client'`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Phone, &u.Email, &u.Password, &u.Role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, u)
+	}
+	return result, rows.Err()
+}
+
+func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID int) ([]models.User, error) {
+	query := `SELECT DISTINCT u.id, u.name, u.phone, u.email, u.password, u.role, u.created_at, u.updated_at
+              FROM users u
+              JOIN progress p ON u.id = p.client_id
+              JOIN days d ON p.day_id = d.id
+              WHERE d.work_out_program_id = ?`
+	rows, err := r.DB.QueryContext(ctx, query, programID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Name, &u.Phone, &u.Email, &u.Password, &u.Role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, u)
+	}
+	return result, rows.Err()
+}
+
+func (r *UserRepository) DeleteClientFromProgram(ctx context.Context, programID, clientID int) error {
+	query := `DELETE p FROM progress p JOIN days d ON p.day_id = d.id WHERE d.work_out_program_id = ? AND p.client_id = ?`
+	_, err := r.DB.ExecContext(ctx, query, programID, clientID)
+	return err
+}
