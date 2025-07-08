@@ -28,3 +28,38 @@ func (r *ExerciseRepository) CreateExercise(ctx context.Context, ex models.Exerc
 	ex.ID = int(id)
 	return ex, nil
 }
+
+// UpdateExercise updates an exercise by ID.
+func (r *ExerciseRepository) UpdateExercise(ctx context.Context, ex models.Exercises) (models.Exercises, error) {
+	now := time.Now()
+	ex.UpdatedAt = &now
+	query := `UPDATE exercises SET name = ?, description = ?, media_url = ?, sets = ?, repetitions = ?, updated_at = ? WHERE id = ?`
+	res, err := r.DB.ExecContext(ctx, query, ex.Name, ex.Description, ex.MediaURL, ex.Sets, ex.Repetitions, ex.UpdatedAt, ex.ID)
+	if err != nil {
+		return models.Exercises{}, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return models.Exercises{}, err
+	}
+	if rows == 0 {
+		return models.Exercises{}, models.ErrExerciseNotFound
+	}
+	return ex, nil
+}
+
+// DeleteExercise removes an exercise by ID.
+func (r *ExerciseRepository) DeleteExercise(ctx context.Context, id int) error {
+	res, err := r.DB.ExecContext(ctx, `DELETE FROM exercises WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return models.ErrExerciseNotFound
+	}
+	return nil
+}

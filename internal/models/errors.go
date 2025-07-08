@@ -10,4 +10,8 @@ var (
 
 	ErrDayNotFound             = errors.New("day not found")
 
+
+	ErrDayNotFound             = errors.New("day not found")
+
+
 )

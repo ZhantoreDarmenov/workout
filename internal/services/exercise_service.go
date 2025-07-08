@@ -15,3 +15,11 @@ type ExerciseService struct {
 func (s *ExerciseService) CreateExercise(ctx context.Context, ex models.Exercises) (models.Exercises, error) {
 	return s.Repo.CreateExercise(ctx, ex)
 }
+
+func (s *ExerciseService) UpdateExercise(ctx context.Context, ex models.Exercises) (models.Exercises, error) {
+	return s.Repo.UpdateExercise(ctx, ex)
+}
+
+func (s *ExerciseService) DeleteExercise(ctx context.Context, id int) error {
+	return s.Repo.DeleteExercise(ctx, id)
+}
