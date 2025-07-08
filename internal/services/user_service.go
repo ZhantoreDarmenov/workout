@@ -150,3 +150,18 @@ func (s *UserService) SignUp(ctx context.Context, user models.User, inputCode st
 func (s *UserService) UpgradeToTrainer(ctx context.Context, userID int) error {
 	return s.UserRepo.UpdateUserRole(ctx, userID, "trainer")
 }
+
+func (s *UserService) GetAllClients(ctx context.Context) ([]models.User, error) {
+	return s.UserRepo.GetAllClients(ctx)
+}
+
+func (s *UserService) GetClientsByProgramID(ctx context.Context, programID int) ([]models.User, error) {
+	return s.UserRepo.GetClientsByProgramID(ctx, programID)
+}
+
+func (s *UserService) DeleteClientFromProgram(ctx context.Context, programID, clientID int) error {
+	return s.UserRepo.DeleteClientFromProgram(ctx, programID, clientID)
+}
+func (s *UserService) GetProgramsByClientID(ctx context.Context, clientID int) ([]models.WorkOutProgram, error) {
+	return s.UserRepo.GetProgramsByClientID(ctx, clientID)
+}
