@@ -31,17 +31,21 @@ func (app *application) routes() http.Handler {
 
 	// Programs
 	mux.Post("/program", trainerAuthMiddleware.ThenFunc(app.programHandler.CreateProgram))
-	mux.Get("/programs", standardMiddleware.ThenFunc(app.programHandler.ProgramsByTrainer))
+	mux.Get("/programs", trainerAuthMiddleware.ThenFunc(app.programHandler.ProgramsByTrainer))
+	mux.Get("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.GetProgram))
+	mux.Put("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.UpdateProgram))
+	mux.Del("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.DeleteProgram))
 
 	// Exercises and Food
 	mux.Post("/exercise", trainerAuthMiddleware.ThenFunc(app.exerciseHandler.CreateExercise))
 	mux.Post("/food", trainerAuthMiddleware.ThenFunc(app.foodHandler.CreateFood))
 
 	// Days
-	mux.Get("/program/day", standardMiddleware.ThenFunc(app.dayHandler.DayDetails))
+	mux.Get("/program/:program_id/days", trainerAuthMiddleware.ThenFunc(app.dayHandler.DaysByProgram))
+	mux.Get("/program/:program_id/day/:day", trainerAuthMiddleware.ThenFunc(app.dayHandler.DayDetails))
 	mux.Post("/program/day/complete", standardMiddleware.ThenFunc(app.dayHandler.CompleteDay))
 	mux.Post("/program/day", trainerAuthMiddleware.ThenFunc(app.dayHandler.CreateDay))
-	mux.Post("/program/day/complete", standardMiddleware.ThenFunc(app.dayHandler.CompleteDay))
+	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
 
 	// mux.Get("/swagger/", httpSwagger.WrapHandler)
 
