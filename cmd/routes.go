@@ -36,6 +36,12 @@ func (app *application) routes() http.Handler {
 	mux.Put("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.UpdateProgram))
 	mux.Del("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.DeleteProgram))
 
+	// Clients
+	mux.Get("/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetAllClients))
+	mux.Get("/program/:program_id/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetClientsByProgramID))
+	mux.Del("/program/:program_id/client/:client_id", trainerAuthMiddleware.ThenFunc(app.userHandler.DeleteClientFromProgram))
+	mux.Get("/client/:client_id/programs", trainerAuthMiddleware.ThenFunc(app.userHandler.GetProgramsByClientID))
+
 	// Exercises and Food
 	mux.Post("/exercise", trainerAuthMiddleware.ThenFunc(app.exerciseHandler.CreateExercise))
 	mux.Put("/exercise/:id", trainerAuthMiddleware.ThenFunc(app.exerciseHandler.UpdateExercise))
@@ -54,8 +60,6 @@ func (app *application) routes() http.Handler {
 	mux.Del("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.DeleteDay))
 
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
-
-
 
 	// mux.Get("/swagger/", httpSwagger.WrapHandler)
 
