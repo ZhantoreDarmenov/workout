@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"workout/internal/models"
@@ -53,7 +54,11 @@ func (h *DayHandler) CreateDay(w http.ResponseWriter, r *http.Request) {
 	}
 	created, err := h.Service.CreateDay(r.Context(), day)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		status := http.StatusInternalServerError
+		if errors.Is(err, models.ErrWorkoutProgramNotFound) || errors.Is(err, models.ErrExerciseNotFound) || errors.Is(err, models.ErrFoodNotFound) {
+			status = http.StatusBadRequest
+		}
+		http.Error(w, err.Error(), status)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
