@@ -32,9 +32,11 @@ func (app *application) routes() http.Handler {
 	// Programs
 	mux.Post("/program", trainerAuthMiddleware.ThenFunc(app.programHandler.CreateProgram))
 	mux.Get("/programs", trainerAuthMiddleware.ThenFunc(app.programHandler.ProgramsByTrainer))
+
 	mux.Get("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.GetProgram))
 	mux.Put("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.UpdateProgram))
 	mux.Del("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.DeleteProgram))
+
 
 	// Exercises and Food
 	mux.Post("/exercise", trainerAuthMiddleware.ThenFunc(app.exerciseHandler.CreateExercise))
