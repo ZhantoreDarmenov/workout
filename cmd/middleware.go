@@ -125,7 +125,7 @@ func (app *application) JWTMiddleware(next http.Handler, requiredRole string) ht
 		ctx = context.WithValue(ctx, "role", claims.Role)
 
 		// Передаем управление следующему обработчику
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
