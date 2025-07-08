@@ -124,8 +124,8 @@ func (app *application) JWTMiddleware(next http.Handler, requiredRole string) ht
 		ctx := context.WithValue(r.Context(), "user_id", int(claims.UserID))
 		ctx = context.WithValue(ctx, "role", claims.Role)
 
-		// Передаем управление следующему обработчику
-		next.ServeHTTP(w, r)
+		// Передаем управление следующему обработчику вместе с новым контекстом
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
