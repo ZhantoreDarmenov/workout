@@ -162,3 +162,6 @@ func (s *UserService) GetClientsByProgramID(ctx context.Context, programID int) 
 func (s *UserService) DeleteClientFromProgram(ctx context.Context, programID, clientID int) error {
 	return s.UserRepo.DeleteClientFromProgram(ctx, programID, clientID)
 }
+func (s *UserService) GetProgramsByClientID(ctx context.Context, clientID int) ([]models.WorkOutProgram, error) {
+	return s.UserRepo.GetProgramsByClientID(ctx, clientID)
+}

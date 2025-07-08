@@ -40,6 +40,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetAllClients))
 	mux.Get("/program/:program_id/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetClientsByProgramID))
 	mux.Del("/program/:program_id/client/:client_id", trainerAuthMiddleware.ThenFunc(app.userHandler.DeleteClientFromProgram))
+	mux.Get("/client/:client_id/programs", trainerAuthMiddleware.ThenFunc(app.userHandler.GetProgramsByClientID))
 
 	// Exercises and Food
 	mux.Post("/exercise", trainerAuthMiddleware.ThenFunc(app.exerciseHandler.CreateExercise))

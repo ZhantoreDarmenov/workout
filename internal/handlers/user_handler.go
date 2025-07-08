@@ -150,3 +150,27 @@ func (h *UserHandler) DeleteClientFromProgram(w http.ResponseWriter, r *http.Req
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// GetProgramsByClientID lists workout programs a client is enrolled in.
+func (h *UserHandler) GetProgramsByClientID(w http.ResponseWriter, r *http.Request) {
+	clientID, _ := strconv.Atoi(r.URL.Query().Get(":client_id"))
+	if clientID == 0 {
+		clientID, _ = strconv.Atoi(r.URL.Query().Get("client_id"))
+	}
+	if clientID == 0 {
+		if id, ok := r.Context().Value("user_id").(int); ok {
+			clientID = id
+		}
+	}
+	if clientID == 0 {
+		http.Error(w, "client_id required", http.StatusBadRequest)
+		return
+	}
+	programs, err := h.Service.GetProgramsByClientID(r.Context(), clientID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(programs)
+}

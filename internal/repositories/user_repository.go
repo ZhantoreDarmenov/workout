@@ -182,3 +182,25 @@ func (r *UserRepository) DeleteClientFromProgram(ctx context.Context, programID,
 	_, err := r.DB.ExecContext(ctx, query, programID, clientID)
 	return err
 }
+func (r *UserRepository) GetProgramsByClientID(ctx context.Context, clientID int) ([]models.WorkOutProgram, error) {
+	query := `SELECT DISTINCT wp.id, wp.trainer_id, wp.name, wp.days, wp.description, wp.created_at, wp.updated_at
+                 FROM workout_programs wp
+                 JOIN days d ON wp.id = d.work_out_program_id
+                 JOIN progress p ON d.id = p.day_id
+                 WHERE p.client_id = ?`
+	rows, err := r.DB.QueryContext(ctx, query, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.WorkOutProgram
+	for rows.Next() {
+		var p models.WorkOutProgram
+		if err := rows.Scan(&p.ID, &p.TrainerID, &p.Name, &p.Days, &p.Description, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, err
+		}
+		result = append(result, p)
+	}
+	return result, rows.Err()
+}
