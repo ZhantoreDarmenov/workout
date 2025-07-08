@@ -22,6 +22,13 @@ func (h *ProgramHandler) CreateProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if userID, ok := r.Context().Value("user_id").(int); ok {
+		p.TrainerID = userID
+	} else {
+		http.Error(w, "user id missing", http.StatusUnauthorized)
+		return
+	}
+
 	created, err := h.Service.CreateProgram(r.Context(), p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -37,6 +44,12 @@ func (h *ProgramHandler) CreateProgram(w http.ResponseWriter, r *http.Request) {
 func (h *ProgramHandler) ProgramsByTrainer(w http.ResponseWriter, r *http.Request) {
 	trainerIDStr := r.URL.Query().Get("trainer_id")
 	trainerID, _ := strconv.Atoi(trainerIDStr)
+
+	if trainerID == 0 {
+		if id, ok := r.Context().Value("user_id").(int); ok {
+			trainerID = id
+		}
+	}
 
 	programs, err := h.Service.ProgramsByTrainer(r.Context(), trainerID)
 	if err != nil {
