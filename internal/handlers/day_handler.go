@@ -140,3 +140,26 @@ func (h *DayHandler) UpdateDay(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updated)
 }
+
+// DeleteDay removes a workout day by id.
+func (h *DayHandler) DeleteDay(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	if id == 0 {
+		id, _ = strconv.Atoi(r.URL.Query().Get("id"))
+	}
+	if id == 0 {
+		http.Error(w, "id required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.DeleteDay(r.Context(), id); err != nil {
+		if errors.Is(err, models.ErrDayNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

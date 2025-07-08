@@ -164,3 +164,19 @@ func (r *DayRepository) UpdateDay(ctx context.Context, day models.Days) (models.
 	}
 	return day, nil
 }
+
+// DeleteDay removes a workout day by its ID.
+func (r *DayRepository) DeleteDay(ctx context.Context, id int) error {
+	res, err := r.DB.ExecContext(ctx, `DELETE FROM days WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return models.ErrDayNotFound
+	}
+	return nil
+}
