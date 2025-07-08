@@ -10,8 +10,8 @@ type WorkOutProgram struct {
 	Name        string     `json:"name"`
 	Days        int        `json:"days"`
 	Description string     `json:"description"`
-	Duration    string     `json:"duration"`
-	Clients     string     `json:"clients"`
+	Duration    string     `json:"duration,omitempty"`
+	Clients     string     `json:"clients,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
