@@ -20,7 +20,7 @@ type Config struct {
 func LoadConfig() Config {
 	var cfg Config
 
-	data, err := os.ReadFile("C:\\Users\\User\\Desktop\\workout\\config\\config_new.yaml")
+	data, err := os.ReadFile("C:\\Users\\User\\Desktop\\workout\\config\\config.yaml")
 	if err != nil {
 		log.Fatalf("Failed to read config file: %v", err)
 	}

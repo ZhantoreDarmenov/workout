@@ -31,6 +31,9 @@ func (s *DayService) UpdateDay(ctx context.Context, day models.Days) (models.Day
 	return s.Repo.UpdateDay(ctx, day)
 }
 
+
 func (s *DayService) DeleteDay(ctx context.Context, id int) error {
 	return s.Repo.DeleteDay(ctx, id)
 }
+
+

@@ -141,6 +141,7 @@ func (h *DayHandler) UpdateDay(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updated)
 }
 
+
 // DeleteDay removes a workout day by id.
 func (h *DayHandler) DeleteDay(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
@@ -163,3 +164,4 @@ func (h *DayHandler) DeleteDay(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
