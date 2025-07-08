@@ -26,3 +26,7 @@ func (s *DayService) CreateDay(ctx context.Context, day models.Days) (models.Day
 func (s *DayService) DaysByProgram(ctx context.Context, programID int) ([]models.DayDetails, error) {
 	return s.Repo.DaysByProgram(ctx, programID)
 }
+
+func (s *DayService) UpdateDay(ctx context.Context, day models.Days) (models.Days, error) {
+	return s.Repo.UpdateDay(ctx, day)
+}
