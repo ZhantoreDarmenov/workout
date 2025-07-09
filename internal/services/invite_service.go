@@ -36,3 +36,9 @@ func (s *InviteService) GetProgramFromInvite(ctx context.Context, token string) 
 	return s.Repo.GetProgramFromInvite(ctx, token)
 }
 
+
+func (s *InviteService) GetProgramFromInvite(ctx context.Context, token string) (models.WorkOutProgram, error) {
+	return s.Repo.GetProgramFromInvite(ctx, token)
+}
+
+

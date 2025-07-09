@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"workout/internal/models"
+	"workout/internal/repositories"
 	"workout/internal/services"
 )
 
@@ -173,4 +174,35 @@ func (h *UserHandler) GetProgramsByClientID(w http.ResponseWriter, r *http.Reque
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(programs)
+}
+
+// UpdateProfile allows an authenticated user to update their profile.
+func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		http.Error(w, "user id missing", http.StatusUnauthorized)
+		return
+	}
+	var req models.UserUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	updated, err := h.Service.UpdateProfile(r.Context(), userID, req)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidVerificationCode) {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		if errors.Is(err, repositories.ErrUserNotFound) || errors.Is(err, ErrUserNotFound) {
+			http.Error(w, "user not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updated)
 }

@@ -20,6 +20,7 @@ func (app *application) routes() http.Handler {
 	adminAuthMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("admin"))
 	trainerAuthMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("trainer"))
 	clientAuthMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole("client"))
+	authMiddleware := standardMiddleware.Append(app.JWTMiddlewareWithRole(""))
 
 	mux := pat.New()
 
@@ -28,6 +29,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/user/sign_up", standardMiddleware.ThenFunc(app.userHandler.SignUp))
 	mux.Post("/user/sign_in", standardMiddleware.ThenFunc(app.userHandler.SignIn))
 	mux.Post("/user/upgrade", clientAuthMiddleware.ThenFunc(app.userHandler.UpgradeToTrainer))
+	mux.Put("/user/profile", authMiddleware.ThenFunc(app.userHandler.UpdateProfile))
 
 	// Programs
 	mux.Post("/program", trainerAuthMiddleware.ThenFunc(app.programHandler.CreateProgram))
@@ -68,6 +70,10 @@ func (app *application) routes() http.Handler {
 	mux.Post("/program/invite/accept", clientAuthMiddleware.ThenFunc(app.inviteHandler.AcceptInvite))
 
 	mux.Get("/program/invite/program", standardMiddleware.ThenFunc(app.inviteHandler.ProgramFromInvite))
+
+
+	mux.Get("/program/invite/program", standardMiddleware.ThenFunc(app.inviteHandler.ProgramFromInvite))
+
 
 	mux.Put("/program/:program_id/client/:client_id/access", trainerAuthMiddleware.ThenFunc(app.inviteHandler.UpdateAccess))
 
