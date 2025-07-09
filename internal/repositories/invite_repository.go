@@ -117,7 +117,7 @@ func (r *InviteRepository) UpdateAccessDuration(ctx context.Context, programID, 
 	return inv, nil
 }
 
-
+\
 func (r *InviteRepository) GetProgramFromInvite(ctx context.Context, token string) (models.WorkOutProgram, error) {
 	var p models.WorkOutProgram
 	query := `SELECT wp.id, wp.trainer_id, wp.name, wp.days, wp.description, wp.created_at, wp.updated_at
@@ -133,4 +133,4 @@ func (r *InviteRepository) GetProgramFromInvite(ctx context.Context, token strin
 	}
 	return p, nil
 }
-
+\

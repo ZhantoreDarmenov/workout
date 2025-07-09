@@ -21,20 +21,24 @@ import (
 )
 
 type application struct {
-	errorLog        *log.Logger
-	infoLog         *log.Logger
-	userHandler     *handlers.UserHandler
-	userRepo        *repositories.UserRepository
-	programHandler  *handlers.ProgramHandler
-	programRepo     *repositories.ProgramRepository
-	dayHandler      *handlers.DayHandler
-	dayRepo         *repositories.DayRepository
-	exerciseHandler *handlers.ExerciseHandler
-	exerciseRepo    *repositories.ExerciseRepository
-	foodHandler     *handlers.FoodHandler
-	foodRepo        *repositories.FoodRepository
-	inviteHandler   *handlers.InviteHandler
-	inviteRepo      *repositories.InviteRepository
+
+	errorLog         *log.Logger
+	infoLog          *log.Logger
+	userHandler      *handlers.UserHandler
+	userRepo         *repositories.UserRepository
+	programHandler   *handlers.ProgramHandler
+	programRepo      *repositories.ProgramRepository
+	dayHandler       *handlers.DayHandler
+	dayRepo          *repositories.DayRepository
+	exerciseHandler  *handlers.ExerciseHandler
+	exerciseRepo     *repositories.ExerciseRepository
+	foodHandler      *handlers.FoodHandler
+	foodRepo         *repositories.FoodRepository
+	inviteHandler    *handlers.InviteHandler
+	inviteRepo       *repositories.InviteRepository
+	analyticsHandler *handlers.AnalyticsHandler
+	analyticsRepo    *repositories.AnalyticsRepository
+
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -46,6 +50,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	foodRepo := repositories.FoodRepository{DB: db}
 	inviteRepo := repositories.InviteRepository{DB: db}
 
+	analyticsRepo := repositories.AnalyticsRepository{DB: db}
+
+
 	// Services
 	userService := &services.UserService{UserRepo: &userRepo}
 	programService := &services.ProgramService{Repo: &programRepo}
@@ -54,6 +61,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	foodService := &services.FoodService{Repo: &foodRepo}
 	inviteService := &services.InviteService{Repo: &inviteRepo, UserRepo: &userRepo}
 
+	analyticsService := &services.AnalyticsService{Repo: &analyticsRepo}
+
+
 	// Handlers
 	userHandler := &handlers.UserHandler{Service: userService}
 	programHandler := &handlers.ProgramHandler{Service: programService}
@@ -61,22 +71,25 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	exerciseHandler := &handlers.ExerciseHandler{Service: exerciseService}
 	foodHandler := &handlers.FoodHandler{Service: foodService}
 	inviteHandler := &handlers.InviteHandler{Service: inviteService}
+	analyticsHandler := &handlers.AnalyticsHandler{Service: analyticsService}
 
 	return &application{
-		errorLog:        errorLog,
-		infoLog:         infoLog,
-		userHandler:     userHandler,
-		programHandler:  programHandler,
-		userRepo:        &userRepo,
-		programRepo:     &programRepo,
-		dayRepo:         &dayRepo,
-		dayHandler:      dayHandler,
-		exerciseRepo:    &exerciseRepo,
-		exerciseHandler: exerciseHandler,
-		foodRepo:        &foodRepo,
-		foodHandler:     foodHandler,
-		inviteRepo:      &inviteRepo,
-		inviteHandler:   inviteHandler,
+		errorLog:         errorLog,
+		infoLog:          infoLog,
+		userHandler:      userHandler,
+		programHandler:   programHandler,
+		userRepo:         &userRepo,
+		programRepo:      &programRepo,
+		dayRepo:          &dayRepo,
+		dayHandler:       dayHandler,
+		exerciseRepo:     &exerciseRepo,
+		exerciseHandler:  exerciseHandler,
+		foodRepo:         &foodRepo,
+		foodHandler:      foodHandler,
+		inviteRepo:       &inviteRepo,
+		inviteHandler:    inviteHandler,
+		analyticsRepo:    &analyticsRepo,
+		analyticsHandler: analyticsHandler,
 	}
 }
 
