@@ -54,10 +54,19 @@ func (app *application) routes() http.Handler {
 	mux.Get("/program/:program_id/days", trainerAuthMiddleware.ThenFunc(app.dayHandler.DaysByProgram))
 	mux.Get("/program/:program_id/day/:day", trainerAuthMiddleware.ThenFunc(app.dayHandler.DayDetails))
 	mux.Post("/program/day/complete", standardMiddleware.ThenFunc(app.dayHandler.CompleteDay))
+	mux.Post("/program/day/food", standardMiddleware.ThenFunc(app.dayHandler.CompleteFood))
+	mux.Post("/program/day/exercise", standardMiddleware.ThenFunc(app.dayHandler.CompleteExercise))
+	mux.Get("/program/day/progress", standardMiddleware.ThenFunc(app.dayHandler.ProgressStatus))
+	mux.Get("/program/:program_id/progress", standardMiddleware.ThenFunc(app.dayHandler.ProgramProgress))
 	mux.Post("/program/day", trainerAuthMiddleware.ThenFunc(app.dayHandler.CreateDay))
 
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
 	mux.Del("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.DeleteDay))
+
+	// Invites
+	mux.Post("/program/invite", trainerAuthMiddleware.ThenFunc(app.inviteHandler.InviteClient))
+	mux.Post("/program/invite/accept", clientAuthMiddleware.ThenFunc(app.inviteHandler.AcceptInvite))
+	mux.Put("/program/:program_id/client/:client_id/access", trainerAuthMiddleware.ThenFunc(app.inviteHandler.UpdateAccess))
 
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
 
