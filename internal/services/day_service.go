@@ -19,6 +19,22 @@ func (s *DayService) CompleteDay(ctx context.Context, clientID, dayID int) (mode
 	return s.Repo.MarkDayCompleted(ctx, clientID, dayID)
 }
 
+func (s *DayService) CompleteFood(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
+	return s.Repo.MarkFoodCompleted(ctx, clientID, dayID)
+}
+
+func (s *DayService) CompleteExercise(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
+	return s.Repo.MarkExerciseCompleted(ctx, clientID, dayID)
+}
+
+func (s *DayService) GetProgress(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
+	return s.Repo.GetProgress(ctx, clientID, dayID)
+}
+
+func (s *DayService) GetProgramProgress(ctx context.Context, clientID, programID int) ([]models.DayProgressStatus, error) {
+	return s.Repo.GetProgramProgress(ctx, clientID, programID)
+}
+
 func (s *DayService) CreateDay(ctx context.Context, day models.Days) (models.Days, error) {
 	return s.Repo.CreateDay(ctx, day)
 }
@@ -31,9 +47,6 @@ func (s *DayService) UpdateDay(ctx context.Context, day models.Days) (models.Day
 	return s.Repo.UpdateDay(ctx, day)
 }
 
-
 func (s *DayService) DeleteDay(ctx context.Context, id int) error {
 	return s.Repo.DeleteDay(ctx, id)
 }
-
-

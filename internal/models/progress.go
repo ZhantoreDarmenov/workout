@@ -12,8 +12,19 @@ type DayDetails struct {
 
 // ProgramProgress represents completion of a workout day by a client.
 type ProgramProgress struct {
-	ID        int       `json:"id"`
-	ClientID  int       `json:"client_id"`
-	DayID     int       `json:"day_id"`
-	Completed time.Time `json:"completed"`
+	ID                int        `json:"id"`
+	ClientID          int        `json:"client_id"`
+	DayID             int        `json:"day_id"`
+	FoodCompleted     bool       `json:"food_completed"`
+	ExerciseCompleted bool       `json:"exercise_completed"`
+	Completed         *time.Time `json:"completed,omitempty"`
+}
+
+// DayProgressStatus exposes completion info for a program's day.
+type DayProgressStatus struct {
+	DayID             int        `json:"day_id"`
+	DayNumber         int        `json:"day_number"`
+	FoodCompleted     bool       `json:"food_completed"`
+	ExerciseCompleted bool       `json:"exercise_completed"`
+	Completed         *time.Time `json:"completed,omitempty"`
 }

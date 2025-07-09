@@ -39,17 +39,118 @@ func (r *DayRepository) GetDayDetails(ctx context.Context, programID, dayNumber 
 }
 
 func (r *DayRepository) MarkDayCompleted(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
-	prog := models.ProgramProgress{ClientID: clientID, DayID: dayID, Completed: time.Now()}
-	res, err := r.DB.ExecContext(ctx, `INSERT INTO progress (client_id, day_id, completed) VALUES (?, ?, ?)`, prog.ClientID, prog.DayID, prog.Completed)
+	now := time.Now()
+	// try update existing progress record
+	res, err := r.DB.ExecContext(ctx, `UPDATE progress SET completed = ? WHERE client_id = ? AND day_id = ?`, now, clientID, dayID)
 	if err != nil {
 		return models.ProgramProgress{}, err
 	}
-	id, err := res.LastInsertId()
+	rows, err := res.RowsAffected()
 	if err != nil {
 		return models.ProgramProgress{}, err
 	}
-	prog.ID = int(id)
+	if rows == 0 {
+		// insert new progress if none exists
+		res, err = r.DB.ExecContext(ctx, `INSERT INTO progress (client_id, day_id, food_completed, exercise_completed, completed) VALUES (?, ?, false, false, ?)`, clientID, dayID, now)
+		if err != nil {
+			return models.ProgramProgress{}, err
+		}
+	}
+
+	var prog models.ProgramProgress
+	var completed sql.NullTime
+	err = r.DB.QueryRowContext(ctx, `SELECT id, client_id, day_id, food_completed, exercise_completed, completed FROM progress WHERE client_id = ? AND day_id = ?`, clientID, dayID).Scan(
+		&prog.ID, &prog.ClientID, &prog.DayID, &prog.FoodCompleted, &prog.ExerciseCompleted, &completed)
+	if err != nil {
+		return models.ProgramProgress{}, err
+	}
+	if completed.Valid {
+		prog.Completed = &completed.Time
+	}
 	return prog, nil
+}
+
+func (r *DayRepository) MarkFoodCompleted(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
+	res, err := r.DB.ExecContext(ctx, `UPDATE progress SET food_completed = TRUE WHERE client_id = ? AND day_id = ?`, clientID, dayID)
+	if err != nil {
+		return models.ProgramProgress{}, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return models.ProgramProgress{}, err
+	}
+	if rows == 0 {
+		res, err = r.DB.ExecContext(ctx, `INSERT INTO progress (client_id, day_id, food_completed, exercise_completed) VALUES (?, ?, TRUE, FALSE)`, clientID, dayID)
+		if err != nil {
+			return models.ProgramProgress{}, err
+		}
+	}
+	return r.GetProgress(ctx, clientID, dayID)
+}
+
+func (r *DayRepository) MarkExerciseCompleted(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
+	res, err := r.DB.ExecContext(ctx, `UPDATE progress SET exercise_completed = TRUE WHERE client_id = ? AND day_id = ?`, clientID, dayID)
+	if err != nil {
+		return models.ProgramProgress{}, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return models.ProgramProgress{}, err
+	}
+	if rows == 0 {
+		res, err = r.DB.ExecContext(ctx, `INSERT INTO progress (client_id, day_id, food_completed, exercise_completed) VALUES (?, ?, FALSE, TRUE)`, clientID, dayID)
+		if err != nil {
+			return models.ProgramProgress{}, err
+		}
+	}
+	return r.GetProgress(ctx, clientID, dayID)
+}
+
+func (r *DayRepository) GetProgress(ctx context.Context, clientID, dayID int) (models.ProgramProgress, error) {
+	var prog models.ProgramProgress
+	var completed sql.NullTime
+	err := r.DB.QueryRowContext(ctx, `SELECT id, client_id, day_id, food_completed, exercise_completed, completed FROM progress WHERE client_id = ? AND day_id = ?`, clientID, dayID).Scan(
+		&prog.ID, &prog.ClientID, &prog.DayID, &prog.FoodCompleted, &prog.ExerciseCompleted, &completed)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.ProgramProgress{}, models.ErrDayNotFound
+		}
+		return models.ProgramProgress{}, err
+	}
+	if completed.Valid {
+		prog.Completed = &completed.Time
+	}
+	return prog, nil
+}
+
+// GetProgramProgress returns progress info for all days in a program for a client.
+func (r *DayRepository) GetProgramProgress(ctx context.Context, clientID, programID int) ([]models.DayProgressStatus, error) {
+	rows, err := r.DB.QueryContext(ctx, `SELECT d.id, d.day_number,
+        COALESCE(p.food_completed, FALSE),
+        COALESCE(p.exercise_completed, FALSE),
+        p.completed
+        FROM days d
+        LEFT JOIN progress p ON p.day_id = d.id AND p.client_id = ?
+        WHERE d.work_out_program_id = ?
+        ORDER BY d.day_number`, clientID, programID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.DayProgressStatus
+	for rows.Next() {
+		var dp models.DayProgressStatus
+		var completed sql.NullTime
+		if err := rows.Scan(&dp.DayID, &dp.DayNumber, &dp.FoodCompleted, &dp.ExerciseCompleted, &completed); err != nil {
+			return nil, err
+		}
+		if completed.Valid {
+			dp.Completed = &completed.Time
+		}
+		result = append(result, dp)
+	}
+	return result, rows.Err()
 }
 
 func (r *DayRepository) CreateDay(ctx context.Context, day models.Days) (models.Days, error) {
