@@ -165,3 +165,48 @@ func (s *UserService) DeleteClientFromProgram(ctx context.Context, programID, cl
 func (s *UserService) GetProgramsByClientID(ctx context.Context, clientID int) ([]models.WorkOutProgram, error) {
 	return s.UserRepo.GetProgramsByClientID(ctx, clientID)
 }
+
+// UpdateProfile updates user's profile. Changing email or password requires verification.
+func (s *UserService) UpdateProfile(ctx context.Context, userID int, req models.UserUpdateRequest) (models.User, error) {
+	user, err := s.UserRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	if req.Phone != "" {
+		user.Phone = req.Phone
+	}
+
+	if req.Email != "" || req.Password != "" {
+		if req.VerificationCode == "" {
+			return models.User{}, models.ErrInvalidVerificationCode
+		}
+		emailToCheck := req.Email
+		if emailToCheck == "" {
+			emailToCheck = user.Email
+		}
+		code, err := s.UserRepo.GetVerificationCodeByEmail(ctx, emailToCheck)
+		if err != nil {
+			return models.User{}, err
+		}
+		if code != req.VerificationCode {
+			return models.User{}, models.ErrInvalidVerificationCode
+		}
+		_ = s.UserRepo.ClearVerificationCode(ctx, emailToCheck)
+		if req.Email != "" {
+			user.Email = req.Email
+		}
+		if req.Password != "" {
+			hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+			if err != nil {
+				return models.User{}, err
+			}
+			user.Password = string(hashed)
+		}
+	}
+
+	return s.UserRepo.UpdateUser(ctx, user)
+}

@@ -33,6 +33,8 @@ type application struct {
 	exerciseRepo    *repositories.ExerciseRepository
 	foodHandler     *handlers.FoodHandler
 	foodRepo        *repositories.FoodRepository
+	inviteHandler   *handlers.InviteHandler
+	inviteRepo      *repositories.InviteRepository
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -42,6 +44,7 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	dayRepo := repositories.DayRepository{DB: db}
 	exerciseRepo := repositories.ExerciseRepository{DB: db}
 	foodRepo := repositories.FoodRepository{DB: db}
+	inviteRepo := repositories.InviteRepository{DB: db}
 
 	// Services
 	userService := &services.UserService{UserRepo: &userRepo}
@@ -49,6 +52,7 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	dayService := &services.DayService{Repo: &dayRepo}
 	exerciseService := &services.ExerciseService{Repo: &exerciseRepo}
 	foodService := &services.FoodService{Repo: &foodRepo}
+	inviteService := &services.InviteService{Repo: &inviteRepo, UserRepo: &userRepo}
 
 	// Handlers
 	userHandler := &handlers.UserHandler{Service: userService}
@@ -56,6 +60,7 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	dayHandler := &handlers.DayHandler{Service: dayService}
 	exerciseHandler := &handlers.ExerciseHandler{Service: exerciseService}
 	foodHandler := &handlers.FoodHandler{Service: foodService}
+	inviteHandler := &handlers.InviteHandler{Service: inviteService}
 
 	return &application{
 		errorLog:        errorLog,
@@ -70,6 +75,8 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 		exerciseHandler: exerciseHandler,
 		foodRepo:        &foodRepo,
 		foodHandler:     foodHandler,
+		inviteRepo:      &inviteRepo,
+		inviteHandler:   inviteHandler,
 	}
 }
 

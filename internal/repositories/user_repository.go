@@ -89,6 +89,39 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (mode
 	return user, nil
 }
 
+// GetUserByID retrieves a user by id.
+func (r *UserRepository) GetUserByID(ctx context.Context, id int) (models.User, error) {
+	var user models.User
+	query := `SELECT id, name, phone, email, password, role, created_at, updated_at FROM users WHERE id = ?`
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Name, &user.Phone, &user.Email, &user.Password, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return models.User{}, ErrUserNotFound
+	}
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+}
+
+// UpdateUser updates user record with provided fields.
+func (r *UserRepository) UpdateUser(ctx context.Context, u models.User) (models.User, error) {
+	now := time.Now()
+	u.UpdatedAt = &now
+	query := `UPDATE users SET name=?, phone=?, email=?, password=?, updated_at=? WHERE id=?`
+	res, err := r.DB.ExecContext(ctx, query, u.Name, u.Phone, u.Email, u.Password, u.UpdatedAt, u.ID)
+	if err != nil {
+		return models.User{}, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return models.User{}, err
+	}
+	if rows == 0 {
+		return models.User{}, ErrUserNotFound
+	}
+	return u, nil
+}
+
 func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
 	query := `
         INSERT INTO users (name, phone, email, password, role, created_at, updated_at)
