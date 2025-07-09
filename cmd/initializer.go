@@ -21,6 +21,7 @@ import (
 )
 
 type application struct {
+
 	errorLog         *log.Logger
 	infoLog          *log.Logger
 	userHandler      *handlers.UserHandler
@@ -37,6 +38,7 @@ type application struct {
 	inviteRepo       *repositories.InviteRepository
 	analyticsHandler *handlers.AnalyticsHandler
 	analyticsRepo    *repositories.AnalyticsRepository
+
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
@@ -47,7 +49,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	exerciseRepo := repositories.ExerciseRepository{DB: db}
 	foodRepo := repositories.FoodRepository{DB: db}
 	inviteRepo := repositories.InviteRepository{DB: db}
+
 	analyticsRepo := repositories.AnalyticsRepository{DB: db}
+
 
 	// Services
 	userService := &services.UserService{UserRepo: &userRepo}
@@ -56,7 +60,9 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	exerciseService := &services.ExerciseService{Repo: &exerciseRepo}
 	foodService := &services.FoodService{Repo: &foodRepo}
 	inviteService := &services.InviteService{Repo: &inviteRepo, UserRepo: &userRepo}
+
 	analyticsService := &services.AnalyticsService{Repo: &analyticsRepo}
+
 
 	// Handlers
 	userHandler := &handlers.UserHandler{Service: userService}
