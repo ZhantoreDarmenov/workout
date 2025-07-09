@@ -63,6 +63,11 @@ func (app *application) routes() http.Handler {
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
 	mux.Del("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.DeleteDay))
 
+	// Invites
+	mux.Post("/program/invite", trainerAuthMiddleware.ThenFunc(app.inviteHandler.InviteClient))
+	mux.Post("/program/invite/accept", clientAuthMiddleware.ThenFunc(app.inviteHandler.AcceptInvite))
+	mux.Put("/program/:program_id/client/:client_id/access", trainerAuthMiddleware.ThenFunc(app.inviteHandler.UpdateAccess))
+
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
 
 	// mux.Get("/swagger/", httpSwagger.WrapHandler)
