@@ -121,6 +121,22 @@ func (h *DayHandler) ProgressStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(progress)
 }
+
+func (h *DayHandler) ProgramProgress(w http.ResponseWriter, r *http.Request) {
+	clientID, _ := strconv.Atoi(r.URL.Query().Get("client_id"))
+	programID, _ := strconv.Atoi(r.URL.Query().Get("program_id"))
+	if clientID == 0 || programID == 0 {
+		http.Error(w, "client_id and program_id required", http.StatusBadRequest)
+		return
+	}
+	progress, err := h.Service.GetProgramProgress(r.Context(), clientID, programID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(progress)
+}
 func (h *DayHandler) CreateDay(w http.ResponseWriter, r *http.Request) {
 	var day models.Days
 	if err := json.NewDecoder(r.Body).Decode(&day); err != nil {

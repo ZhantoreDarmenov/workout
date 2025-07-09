@@ -19,3 +19,12 @@ type ProgramProgress struct {
 	ExerciseCompleted bool       `json:"exercise_completed"`
 	Completed         *time.Time `json:"completed,omitempty"`
 }
+
+// DayProgressStatus exposes completion info for a program's day.
+type DayProgressStatus struct {
+	DayID             int        `json:"day_id"`
+	DayNumber         int        `json:"day_number"`
+	FoodCompleted     bool       `json:"food_completed"`
+	ExerciseCompleted bool       `json:"exercise_completed"`
+	Completed         *time.Time `json:"completed,omitempty"`
+}

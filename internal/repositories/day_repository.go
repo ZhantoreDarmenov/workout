@@ -123,6 +123,36 @@ func (r *DayRepository) GetProgress(ctx context.Context, clientID, dayID int) (m
 	return prog, nil
 }
 
+// GetProgramProgress returns progress info for all days in a program for a client.
+func (r *DayRepository) GetProgramProgress(ctx context.Context, clientID, programID int) ([]models.DayProgressStatus, error) {
+	rows, err := r.DB.QueryContext(ctx, `SELECT d.id, d.day_number,
+        COALESCE(p.food_completed, FALSE),
+        COALESCE(p.exercise_completed, FALSE),
+        p.completed
+        FROM days d
+        LEFT JOIN progress p ON p.day_id = d.id AND p.client_id = ?
+        WHERE d.work_out_program_id = ?
+        ORDER BY d.day_number`, clientID, programID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.DayProgressStatus
+	for rows.Next() {
+		var dp models.DayProgressStatus
+		var completed sql.NullTime
+		if err := rows.Scan(&dp.DayID, &dp.DayNumber, &dp.FoodCompleted, &dp.ExerciseCompleted, &completed); err != nil {
+			return nil, err
+		}
+		if completed.Valid {
+			dp.Completed = &completed.Time
+		}
+		result = append(result, dp)
+	}
+	return result, rows.Err()
+}
+
 func (r *DayRepository) CreateDay(ctx context.Context, day models.Days) (models.Days, error) {
 	// ensure referenced records exist to avoid foreign key errors
 	var exists bool

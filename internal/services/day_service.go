@@ -31,6 +31,10 @@ func (s *DayService) GetProgress(ctx context.Context, clientID, dayID int) (mode
 	return s.Repo.GetProgress(ctx, clientID, dayID)
 }
 
+func (s *DayService) GetProgramProgress(ctx context.Context, clientID, programID int) ([]models.DayProgressStatus, error) {
+	return s.Repo.GetProgramProgress(ctx, clientID, programID)
+}
+
 func (s *DayService) CreateDay(ctx context.Context, day models.Days) (models.Days, error) {
 	return s.Repo.CreateDay(ctx, day)
 }

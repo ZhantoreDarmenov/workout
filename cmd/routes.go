@@ -57,6 +57,7 @@ func (app *application) routes() http.Handler {
 	mux.Post("/program/day/food", standardMiddleware.ThenFunc(app.dayHandler.CompleteFood))
 	mux.Post("/program/day/exercise", standardMiddleware.ThenFunc(app.dayHandler.CompleteExercise))
 	mux.Get("/program/day/progress", standardMiddleware.ThenFunc(app.dayHandler.ProgressStatus))
+	mux.Get("/program/:program_id/progress", standardMiddleware.ThenFunc(app.dayHandler.ProgramProgress))
 	mux.Post("/program/day", trainerAuthMiddleware.ThenFunc(app.dayHandler.CreateDay))
 
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
