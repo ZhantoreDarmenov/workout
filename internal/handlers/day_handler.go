@@ -65,6 +65,62 @@ func (h *DayHandler) CompleteDay(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(progress)
 }
+
+func (h *DayHandler) CompleteFood(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		ClientID int `json:"client_id"`
+		DayID    int `json:"day_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	progress, err := h.Service.CompleteFood(r.Context(), req.ClientID, req.DayID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(progress)
+}
+
+func (h *DayHandler) CompleteExercise(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		ClientID int `json:"client_id"`
+		DayID    int `json:"day_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	progress, err := h.Service.CompleteExercise(r.Context(), req.ClientID, req.DayID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(progress)
+}
+
+func (h *DayHandler) ProgressStatus(w http.ResponseWriter, r *http.Request) {
+	clientID, _ := strconv.Atoi(r.URL.Query().Get("client_id"))
+	dayID, _ := strconv.Atoi(r.URL.Query().Get("day_id"))
+	if clientID == 0 || dayID == 0 {
+		http.Error(w, "client_id and day_id required", http.StatusBadRequest)
+		return
+	}
+	progress, err := h.Service.GetProgress(r.Context(), clientID, dayID)
+	if err != nil {
+		if errors.Is(err, models.ErrDayNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(progress)
+}
 func (h *DayHandler) CreateDay(w http.ResponseWriter, r *http.Request) {
 	var day models.Days
 	if err := json.NewDecoder(r.Body).Decode(&day); err != nil {
@@ -141,7 +197,6 @@ func (h *DayHandler) UpdateDay(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updated)
 }
 
-
 // DeleteDay removes a workout day by id.
 func (h *DayHandler) DeleteDay(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.URL.Query().Get(":id"))
@@ -164,4 +219,3 @@ func (h *DayHandler) DeleteDay(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
-
