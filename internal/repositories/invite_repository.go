@@ -116,3 +116,21 @@ func (r *InviteRepository) UpdateAccessDuration(ctx context.Context, programID, 
 	inv.ClientID = &cid
 	return inv, nil
 }
+
+
+func (r *InviteRepository) GetProgramFromInvite(ctx context.Context, token string) (models.WorkOutProgram, error) {
+	var p models.WorkOutProgram
+	query := `SELECT wp.id, wp.trainer_id, wp.name, wp.days, wp.description, wp.created_at, wp.updated_at
+              FROM workout_programs wp
+              JOIN program_invites pi ON pi.program_id = wp.id
+              WHERE pi.token = ?`
+	err := r.DB.QueryRowContext(ctx, query, token).Scan(&p.ID, &p.TrainerID, &p.Name, &p.Days, &p.Description, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.WorkOutProgram{}, models.ErrInviteNotFound
+		}
+		return models.WorkOutProgram{}, err
+	}
+	return p, nil
+}
+

@@ -93,3 +93,24 @@ func (h *InviteHandler) UpdateAccess(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(inv)
 }
+
+
+func (h *InviteHandler) ProgramFromInvite(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "token required", http.StatusBadRequest)
+		return
+	}
+	program, err := h.Service.GetProgramFromInvite(r.Context(), token)
+	if err != nil {
+		if err == models.ErrInviteNotFound {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(program)
+}
+
