@@ -15,7 +15,7 @@ type DayRepository struct {
 
 func (r *DayRepository) GetDayDetails(ctx context.Context, programID, dayNumber int) (models.DayDetails, error) {
 	var d models.Days
-	err := r.DB.QueryRowContext(ctx, `SELECT id, work_out_program_id, day_number, exercises_id, food_id, created_at, updated_at FROM days WHERE work_out_program_id=? AND day_number=?`, programID, dayNumber).Scan(&d.ID, &d.WorkOutProgramID, &d.DayNumber, &d.ExercisesID, &d.FoodID, &d.CreatedAt, &d.UpdatedAt)
+	err := r.DB.QueryRowContext(ctx, `SELECT id, work_out_program_id, day_number, exercises_id, food_id, note, created_at, updated_at FROM days WHERE work_out_program_id=? AND day_number=?`, programID, dayNumber).Scan(&d.ID, &d.WorkOutProgramID, &d.DayNumber, &d.ExercisesID, &d.FoodID, &d.Note, &d.CreatedAt, &d.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return models.DayDetails{}, models.ErrDayNotFound
@@ -76,11 +76,11 @@ func (r *DayRepository) CreateDay(ctx context.Context, day models.Days) (models.
 		return models.Days{}, models.ErrFoodNotFound
 	}
 
-	query := `INSERT INTO days (work_out_program_id, day_number, exercises_id, food_id, created_at, updated_at)
-                  VALUES (?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO days (work_out_program_id, day_number, exercises_id, food_id, note, created_at, updated_at)
+                  VALUES (?, ?, ?, ?, ?, ?, ?)`
 	day.CreatedAt = time.Now()
 	day.UpdatedAt = &day.CreatedAt
-	res, err := r.DB.ExecContext(ctx, query, day.WorkOutProgramID, day.DayNumber, day.ExercisesID, day.FoodID, day.CreatedAt, day.UpdatedAt)
+	res, err := r.DB.ExecContext(ctx, query, day.WorkOutProgramID, day.DayNumber, day.ExercisesID, day.FoodID, day.Note, day.CreatedAt, day.UpdatedAt)
 	if err != nil {
 		return models.Days{}, err
 	}
@@ -93,7 +93,7 @@ func (r *DayRepository) CreateDay(ctx context.Context, day models.Days) (models.
 }
 
 func (r *DayRepository) DaysByProgram(ctx context.Context, programID int) ([]models.DayDetails, error) {
-	rows, err := r.DB.QueryContext(ctx, `SELECT d.id, d.work_out_program_id, d.day_number, d.exercises_id, d.food_id,
+	rows, err := r.DB.QueryContext(ctx, `SELECT d.id, d.work_out_program_id, d.day_number, d.exercises_id, d.food_id, d.note,
                 d.created_at, d.updated_at,
                 e.id, e.name, e.description, e.media_url, e.sets, e.repetitions, e.created_at, e.updated_at,
                 f.id, f.name, f.description, f.calories, f.protein, f.fats, f.carbohydrates, f.created_at, f.updated_at
@@ -111,7 +111,7 @@ func (r *DayRepository) DaysByProgram(ctx context.Context, programID int) ([]mod
 		var d models.Days
 		var ex models.Exercises
 		var food models.Food
-		err = rows.Scan(&d.ID, &d.WorkOutProgramID, &d.DayNumber, &d.ExercisesID, &d.FoodID,
+		err = rows.Scan(&d.ID, &d.WorkOutProgramID, &d.DayNumber, &d.ExercisesID, &d.FoodID, &d.Note,
 			&d.CreatedAt, &d.UpdatedAt,
 			&ex.ID, &ex.Name, &ex.Description, &ex.MediaURL, &ex.Sets, &ex.Repetitions, &ex.CreatedAt, &ex.UpdatedAt,
 			&food.ID, &food.Name, &food.Description, &food.Calories, &food.Protein, &food.Fats, &food.Carbohydrates, &food.CreatedAt, &food.UpdatedAt)
@@ -150,8 +150,8 @@ func (r *DayRepository) UpdateDay(ctx context.Context, day models.Days) (models.
 
 	now := time.Now()
 	day.UpdatedAt = &now
-	res, err := r.DB.ExecContext(ctx, `UPDATE days SET work_out_program_id = ?, day_number = ?, exercises_id = ?, food_id = ?, updated_at = ? WHERE id = ?`,
-		day.WorkOutProgramID, day.DayNumber, day.ExercisesID, day.FoodID, day.UpdatedAt, day.ID)
+	res, err := r.DB.ExecContext(ctx, `UPDATE days SET work_out_program_id = ?, day_number = ?, exercises_id = ?, food_id = ?, note = ?, updated_at = ? WHERE id = ?`,
+		day.WorkOutProgramID, day.DayNumber, day.ExercisesID, day.FoodID, day.Note, day.UpdatedAt, day.ID)
 	if err != nil {
 		return models.Days{}, err
 	}
@@ -164,7 +164,6 @@ func (r *DayRepository) UpdateDay(ctx context.Context, day models.Days) (models.
 	}
 	return day, nil
 }
-
 
 // DeleteDay removes a workout day by its ID.
 func (r *DayRepository) DeleteDay(ctx context.Context, id int) error {
@@ -181,4 +180,3 @@ func (r *DayRepository) DeleteDay(ctx context.Context, id int) error {
 	}
 	return nil
 }
-
