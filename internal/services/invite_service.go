@@ -34,15 +34,3 @@ func (s *InviteService) UpdateAccess(ctx context.Context, programID, clientID, d
 func (s *InviteService) GetProgramFromInvite(ctx context.Context, token string) (models.WorkOutProgram, error) {
 	return s.Repo.GetProgramFromInvite(ctx, token)
 }
-
-
-func (s *InviteService) GetProgramFromInvite(ctx context.Context, token string) (models.WorkOutProgram, error) {
-	return s.Repo.GetProgramFromInvite(ctx, token)
-}
-
-
-func (s *InviteService) GetProgramFromInvite(ctx context.Context, token string) (models.WorkOutProgram, error) {
-	return s.Repo.GetProgramFromInvite(ctx, token)
-}
-
-\

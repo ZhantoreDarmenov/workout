@@ -8,5 +8,6 @@
     <file url="file://$PROJECT_DIR$/db/migrations/000005_food.up.sql" dialect="MariaDB" />
     <file url="file://$PROJECT_DIR$/db/migrations/000006_days.up.sql" dialect="MariaDB" />
     <file url="file://$PROJECT_DIR$/db/migrations/000007_progress.up.sql" dialect="MariaDB" />
+    <file url="file://$PROJECT_DIR$/db/migrations/000008_program_invites.up.sql" dialect="MariaDB" />
   </component>
 </project>

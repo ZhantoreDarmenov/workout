@@ -1,6 +1,6 @@
 server:
-  address: ":4000"
+  address: ":4001"
 
 database:
   driver: "mysql"
-  url: "root:@tcp(localhost:3306)/workout?parseTime=true"
+  url: "root:nusa123@tcp(localhost:3306)/workout?parseTime=true"
