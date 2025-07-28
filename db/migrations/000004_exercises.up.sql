@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS exercises (
                                          media_url TEXT,
                                          sets VARCHAR(50),
                                          repetitions VARCHAR(50),
-                                         created_at DATETIME NOT NULL,
-                                         updated_at DATETIME
+                                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 use workout;

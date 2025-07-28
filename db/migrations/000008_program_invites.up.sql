@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS program_invites (
     client_id INT,
     accepted_at DATETIME,
     access_expires DATETIME,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (program_id) REFERENCES workout_programs(id),
     FOREIGN KEY (client_id) REFERENCES users(id)
 );

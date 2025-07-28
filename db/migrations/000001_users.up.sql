@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS users
     role          VARCHAR(50) DEFAULT 'client',
     refresh_token VARCHAR(255),
     expires_at    DATETIME,
-    created_at    DATETIME     NOT NULL,
-    updated_at    DATETIME
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 use workout;

@@ -198,7 +198,7 @@ func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID in
                     UNION
                     SELECT pi.client_id AS client_id
                     FROM program_invites pi
-                    WHERE pi.program_id = ? AND pi.client_id IS NOT NULL
+                    WHERE pi.program_id = ? AND pi.client_id IS NOT NULL AND pi.accepted_at IS NOT NULL
               ) cp ON u.id = cp.client_id`
 	rows, err := r.DB.QueryContext(ctx, query, programID, programID)
 	if err != nil {

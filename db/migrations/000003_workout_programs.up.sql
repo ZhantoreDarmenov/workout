@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS workout_programs (
                                                 name VARCHAR(255) NOT NULL,
                                                 days INT NOT NULL,
                                                 description TEXT,
-                                                created_at DATETIME NOT NULL,
-                                                updated_at DATETIME,
+                                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                                 FOREIGN KEY (trainer_id) REFERENCES users(id)
 );
 
