@@ -190,10 +190,17 @@ func (r *UserRepository) GetAllClients(ctx context.Context) ([]models.User, erro
 func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID int) ([]models.User, error) {
 	query := `SELECT DISTINCT u.id, u.name, u.phone, u.email, u.password, u.role, u.created_at, u.updated_at
               FROM users u
-              JOIN progress p ON u.id = p.client_id
-              JOIN days d ON p.day_id = d.id
-              WHERE d.work_out_program_id = ?`
-	rows, err := r.DB.QueryContext(ctx, query, programID)
+              JOIN (
+                    SELECT p.client_id AS client_id
+                    FROM progress p
+                    JOIN days d ON p.day_id = d.id
+                    WHERE d.work_out_program_id = ?
+                    UNION
+                    SELECT pi.client_id AS client_id
+                    FROM program_invites pi
+                    WHERE pi.program_id = ? AND pi.client_id IS NOT NULL AND pi.accepted_at IS NOT NULL
+              ) cp ON u.id = cp.client_id`
+	rows, err := r.DB.QueryContext(ctx, query, programID, programID)
 	if err != nil {
 		return nil, err
 	}
