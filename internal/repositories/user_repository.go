@@ -190,23 +190,16 @@ func (r *UserRepository) GetAllClients(ctx context.Context) ([]models.User, erro
 func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID int) ([]models.User, error) {
 	query := `SELECT DISTINCT u.id, u.name, u.phone, u.email, u.password, u.role, u.created_at, u.updated_at
               FROM users u
-              JOIN (
-                    SELECT p.client_id AS client_id
-                    FROM progress p
-                    JOIN days d ON p.day_id = d.id
-                    WHERE d.work_out_program_id = ?
-                    UNION
-                    SELECT pi.client_id AS client_id
-                    FROM program_invites pi
-                    WHERE pi.program_id = ? AND pi.client_id IS NOT NULL AND pi.accepted_at IS NOT NULL
-              ) cp ON u.id = cp.client_id`
-	rows, err := r.DB.QueryContext(ctx, query, programID, programID)
+              JOIN progress p ON u.id = p.client_id
+              JOIN days d ON p.day_id = d.id
+              WHERE d.work_out_program_id = ?`
+	rows, err := r.DB.QueryContext(ctx, query, programID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var result []models.User
+	result := []models.User{}
 	for rows.Next() {
 		var u models.User
 		if err := rows.Scan(&u.ID, &u.Name, &u.Phone, &u.Email, &u.Password, &u.Role, &u.CreatedAt, &u.UpdatedAt); err != nil {
@@ -215,6 +208,13 @@ func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID in
 		result = append(result, u)
 	}
 	return result, rows.Err()
+}
+
+func (r *UserRepository) AddClientToProgram(ctx context.Context, programID, clientID int) error {
+	query := `INSERT IGNORE INTO progress (client_id, day_id, food_completed, exercise_completed)
+               SELECT ?, d.id, FALSE, FALSE FROM days d WHERE d.work_out_program_id = ?`
+	_, err := r.DB.ExecContext(ctx, query, clientID, programID)
+	return err
 }
 
 func (r *UserRepository) DeleteClientFromProgram(ctx context.Context, programID, clientID int) error {
