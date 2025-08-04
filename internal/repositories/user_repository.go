@@ -217,6 +217,13 @@ func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID in
 	return result, rows.Err()
 }
 
+func (r *UserRepository) AddClientToProgram(ctx context.Context, programID, clientID int) error {
+	query := `INSERT IGNORE INTO progress (client_id, day_id, food_completed, exercise_completed)
+               SELECT ?, d.id, FALSE, FALSE FROM days d WHERE d.work_out_program_id = ?`
+	_, err := r.DB.ExecContext(ctx, query, clientID, programID)
+	return err
+}
+
 func (r *UserRepository) DeleteClientFromProgram(ctx context.Context, programID, clientID int) error {
 	query := `DELETE p FROM progress p JOIN days d ON p.day_id = d.id WHERE d.work_out_program_id = ? AND p.client_id = ?`
 	_, err := r.DB.ExecContext(ctx, query, programID, clientID)

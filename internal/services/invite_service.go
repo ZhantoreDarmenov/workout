@@ -24,7 +24,14 @@ func (s *InviteService) InviteClient(ctx context.Context, programID int, email, 
 }
 
 func (s *InviteService) AcceptInvite(ctx context.Context, token string, clientID int) (models.ProgramInvite, error) {
-	return s.Repo.AcceptInvite(ctx, token, clientID)
+	inv, err := s.Repo.AcceptInvite(ctx, token, clientID)
+	if err != nil {
+		return inv, err
+	}
+	if err := s.UserRepo.AddClientToProgram(ctx, inv.ProgramID, clientID); err != nil {
+		return inv, err
+	}
+	return inv, nil
 }
 
 func (s *InviteService) UpdateAccess(ctx context.Context, programID, clientID, days int) (models.ProgramInvite, error) {
