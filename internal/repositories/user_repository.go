@@ -176,7 +176,7 @@ func (r *UserRepository) GetAllClients(ctx context.Context) ([]models.User, erro
 	}
 	defer rows.Close()
 
-	var result []models.User
+	result := []models.User{}
 	for rows.Next() {
 		var u models.User
 		if err := rows.Scan(&u.ID, &u.Name, &u.Phone, &u.Email, &u.Password, &u.Role, &u.CreatedAt, &u.UpdatedAt); err != nil {
@@ -188,11 +188,12 @@ func (r *UserRepository) GetAllClients(ctx context.Context) ([]models.User, erro
 }
 
 func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID int) ([]models.User, error) {
-	query := `SELECT DISTINCT u.id, u.name, u.phone, u.email, u.password, u.role, u.created_at, u.updated_at
+	query := `SELECT u.id, u.name, u.phone, u.email, u.password, u.role, u.created_at, u.updated_at
               FROM users u
-              JOIN progress p ON u.id = p.client_id
-              JOIN days d ON p.day_id = d.id
-              WHERE d.work_out_program_id = ?`
+
+              JOIN program_invites pi ON pi.client_id = u.id
+              WHERE pi.program_id = ? AND pi.accepted_at IS NOT NULL`
+
 	rows, err := r.DB.QueryContext(ctx, query, programID)
 	if err != nil {
 		return nil, err
@@ -218,23 +219,25 @@ func (r *UserRepository) AddClientToProgram(ctx context.Context, programID, clie
 }
 
 func (r *UserRepository) DeleteClientFromProgram(ctx context.Context, programID, clientID int) error {
-	query := `DELETE p FROM progress p JOIN days d ON p.day_id = d.id WHERE d.work_out_program_id = ? AND p.client_id = ?`
-	_, err := r.DB.ExecContext(ctx, query, programID, clientID)
+	if _, err := r.DB.ExecContext(ctx, `UPDATE program_invites SET client_id=NULL, accepted_at=NULL, access_expires=NULL, updated_at=NOW() WHERE program_id=? AND client_id=?`, programID, clientID); err != nil {
+		return err
+	}
+	_, err := r.DB.ExecContext(ctx, `DELETE p FROM progress p JOIN days d ON p.day_id = d.id WHERE d.work_out_program_id = ? AND p.client_id = ?`, programID, clientID)
 	return err
 }
+
 func (r *UserRepository) GetProgramsByClientID(ctx context.Context, clientID int) ([]models.WorkOutProgram, error) {
-	query := `SELECT DISTINCT wp.id, wp.trainer_id, wp.name, wp.days, wp.description, wp.created_at, wp.updated_at
+	query := `SELECT wp.id, wp.trainer_id, wp.name, wp.days, wp.description, wp.created_at, wp.updated_at
                  FROM workout_programs wp
-                 JOIN days d ON wp.id = d.work_out_program_id
-                 JOIN progress p ON d.id = p.day_id
-                 WHERE p.client_id = ?`
+                 JOIN program_invites pi ON pi.program_id = wp.id
+                 WHERE pi.client_id = ? AND pi.accepted_at IS NOT NULL`
 	rows, err := r.DB.QueryContext(ctx, query, clientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var result []models.WorkOutProgram
+	result := []models.WorkOutProgram{}
 	for rows.Next() {
 		var p models.WorkOutProgram
 		if err := rows.Scan(&p.ID, &p.TrainerID, &p.Name, &p.Days, &p.Description, &p.CreatedAt, &p.UpdatedAt); err != nil {
