@@ -39,7 +39,7 @@ func (app *application) routes() http.Handler {
 	mux.Del("/program/:id", trainerAuthMiddleware.ThenFunc(app.programHandler.DeleteProgram))
 
 	// Clients
-	mux.Get("/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetAllClients))
+	//mux.Get("/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetAllClients))
 	mux.Get("/program/:program_id/clients", trainerAuthMiddleware.ThenFunc(app.userHandler.GetClientsByProgramID))
 	mux.Del("/program/:program_id/client/:client_id", trainerAuthMiddleware.ThenFunc(app.userHandler.DeleteClientFromProgram))
 	mux.Get("/client/:client_id/programs", trainerAuthMiddleware.ThenFunc(app.userHandler.GetProgramsByClientID))
@@ -60,8 +60,8 @@ func (app *application) routes() http.Handler {
 	mux.Post("/program/day/exercise", standardMiddleware.ThenFunc(app.dayHandler.CompleteExercise))
 	mux.Get("/program/day/progress", standardMiddleware.ThenFunc(app.dayHandler.ProgressStatus))
 	mux.Get("/program/:program_id/progress", standardMiddleware.ThenFunc(app.dayHandler.ProgramProgress))
-	mux.Post("/program/day", trainerAuthMiddleware.ThenFunc(app.dayHandler.CreateDay))
 
+	mux.Post("/program/day", trainerAuthMiddleware.ThenFunc(app.dayHandler.CreateDay))
 	mux.Put("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.UpdateDay))
 	mux.Del("/program/day/:id", trainerAuthMiddleware.ThenFunc(app.dayHandler.DeleteDay))
 
