@@ -190,8 +190,10 @@ func (r *UserRepository) GetAllClients(ctx context.Context) ([]models.User, erro
 func (r *UserRepository) GetClientsByProgramID(ctx context.Context, programID int) ([]models.User, error) {
 	query := `SELECT u.id, u.name, u.phone, u.email, u.password, u.role, u.created_at, u.updated_at
               FROM users u
+
               JOIN program_invites pi ON pi.client_id = u.id
               WHERE pi.program_id = ? AND pi.accepted_at IS NOT NULL`
+
 	rows, err := r.DB.QueryContext(ctx, query, programID)
 	if err != nil {
 		return nil, err
